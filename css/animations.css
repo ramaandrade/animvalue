@@ -1,0 +1,99 @@
+/**
+ * animations.css
+ * Animações Suaves, Transições e Keyframes
+ * AnimValue: O Preço do Sucesso
+ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(59, 130, 246, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+  }
+}
+
+@keyframes crisisSiren {
+  0%, 100% {
+    border-color: #ef4444;
+  }
+  50% {
+    border-color: #f59e0b;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.pulse-glow {
+  animation: pulseGlow 2.5s infinite;
+}
+
+.macro-crisis-banner {
+  animation: crisisSiren 2s infinite ease-in-out;
+}
+
+/* Transições suaves */
+.company-card,
+.choice-card,
+.step-node,
+.chip-btn,
+.btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.char-avatar-mini:hover .character-svg,
+.char-avatar-sm:hover .character-svg {
+  transform: scale(1.05);
+  transition: transform 0.25s ease;
+}
+
+/* Responsividade adicional */
+@media (max-width: 640px) {
+  .hero-title {
+    font-size: 1.25rem;
+  }
+
+  .dialogue-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .char-avatar-sm {
+    width: 54px;
+    height: 54px;
+  }
+
+  .action-footer.double-actions {
+    flex-direction: column;
+  }
+
+  .valuation-formal-document {
+    padding: 16px;
+  }
+
+  .doc-cfo-score-box {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .doc-meta {
+    text-align: left;
+  }
+}

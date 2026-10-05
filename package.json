@@ -1,0 +1,27 @@
+{
+  "name": "animvalue-o-preco-do-sucesso",
+  "version": "1.0.0",
+  "description": "Aplicativo Web Gamificado de Valuation (FCD, Múltiplos, Choque de Inflação e EVA) - PWA Mobile-First",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "serve": "python serve.py",
+    "test": "node tests/dcfEngine.test.js && node tests/multiplesEngine.test.js && node tests/evaEngine.test.js"
+  },
+  "keywords": [
+    "valuation",
+    "dcf",
+    "fcd",
+    "wacc",
+    "multiples",
+    "eva",
+    "economic-value-added",
+    "gamification",
+    "pwa",
+    "cfo-simulator",
+    "financas-corporativas"
+  ],
+  "author": "Google DeepMind / Antigravity",
+  "license": "MIT"
+}

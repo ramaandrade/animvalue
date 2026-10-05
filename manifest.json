@@ -1,0 +1,24 @@
+{
+  "name": "AnimValue: O Preço do Sucesso",
+  "short_name": "AnimValue",
+  "description": "Aplicativo Web Gamificado de Valuation e Finanças Corporativas (FCD, Múltiplos, Choque de Inflação e EVA)",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0b0f19",
+  "theme_color": "#0b0f19",
+  "icons": [
+    {
+      "src": "./assets/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./assets/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

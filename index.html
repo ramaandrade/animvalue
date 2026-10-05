@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>AnimValue: O Preço do Sucesso | Web App de Valuation Gamificado</title>
+  <meta name="description" content="Aplicativo Web Gamificado de Valuation e Finanças Corporativas (PWA Mobile-First). Simule FCD, Múltiplos, Choque de Inflação e EVA no papel de CFO!">
+  <meta name="theme-color" content="#0b0f19">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AnimValue">
+
+  <!-- Manifest e Ícones PWA -->
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/svg+xml" href="./assets/icons/icon-192.svg">
+  <link rel="apple-touch-icon" href="./assets/icons/icon-192.svg">
+
+  <!-- Estilos da Aplicação -->
+  <link rel="stylesheet" href="./css/main.css">
+  <link rel="stylesheet" href="./css/components.css">
+  <link rel="stylesheet" href="./css/animations.css">
+</head>
+<body>
+
+  <!-- Container Mobile-First do Web App -->
+  <main id="app-container">
+    
+    <!-- Banner Opcional de Instalação PWA -->
+    <div id="pwa-install-banner" class="pwa-banner hidden no-print">
+      <span class="pwa-banner-text">📲 Instale o <strong>AnimValue</strong> na sua tela de início para jogar offline!</span>
+      <button id="pwa-install-btn" class="btn-pwa">Instalar App</button>
+    </div>
+
+    <!-- Header Fixo Superior -->
+    <header class="app-header">
+      <div class="brand" id="brand-home-btn" title="AnimValue: O Preço do Sucesso - Início">
+        <span class="brand-icon">📈</span>
+        <div class="brand-text">
+          <h1>AnimValue</h1>
+          <span>O Preço do Sucesso • CFO M&A</span>
+        </div>
+      </div>
+      <div class="header-actions no-print">
+        <button id="mute-btn" class="icon-btn" title="Alternar Som" aria-label="Alternar Som">🔊</button>
+      </div>
+    </header>
+
+    <!-- Barra de Navegação da Jornada do CFO -->
+    <nav class="stepper-nav no-print" id="journey-stepper" aria-label="Progresso da Jornada">
+      <!-- Injetado dinamicamente via ui.js -->
+    </nav>
+
+    <!-- Área Principal de Conteúdo e Etapas -->
+    <div id="main-flow-content">
+      <!-- Injetado dinamicamente via ui.js com base na etapa ativa -->
+    </div>
+
+  </main>
+
+  <!-- Script Principal (Módulo ES6) -->
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
