@@ -1,4 +1,6 @@
 # AnimValue: O Preço do Sucesso 📈💼
+> 🌐 **Acesso Online (GitHub Pages):** [https://ramaandrade.github.io/animvalue/](https://ramaandrade.github.io/animvalue/)  
+> 📦 **Repositório GitHub:** [https://github.com/ramaandrade/animvalue](https://github.com/ramaandrade/animvalue)  
 > 📱 **Web App Gamificado de Valuation e Finanças Corporativas (PWA Mobile-First)**  
 > 🏆 **CFO Simulator para Fusões & Aquisições (M&A) e Rodadas de Investimento**  
 > 💡 *Aprenda Fluxo de Caixa Descontado (FCD), Múltiplos Relativos, Choque de Inflação e EVA de forma interativa e visual!*
