@@ -1,6 +1,6 @@
 /**
  * ui.js
- * Controlador de Interface e Visualização de Etapas
+ * Controlador de Interface Mobile-First (Otimizado para Smartphone)
  * AnimValue: O Preço do Sucesso
  */
 
@@ -39,6 +39,18 @@ export class UIController {
         this.state.setStep(1);
       });
     }
+
+    // Barra de Navegação Inferior (Bottom Nav para Polegar)
+    const bottomNav = document.getElementById('bottom-nav');
+    if (bottomNav) {
+      bottomNav.querySelectorAll('.nav-tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const targetStep = parseInt(btn.getAttribute('data-tab-step'), 10);
+          sound.playClick();
+          this.state.setStep(targetStep);
+        });
+      });
+    }
   }
 
   render() {
@@ -46,8 +58,9 @@ export class UIController {
     const comp = this.state.getCompany();
     const computed = this.state.computed;
 
-    // Atualiza barra de progresso no cabeçalho
-    this.updateHeaderProgress(step);
+    // Atualiza barra de progresso e métricas rápidas superiores no mobile
+    this.updateHeaderProgress(step, computed);
+    this.updateBottomNav(step);
 
     const mainContent = document.getElementById('main-flow-content');
     if (!mainContent) return;
@@ -67,35 +80,57 @@ export class UIController {
     }
   }
 
-  updateHeaderProgress(currentStep) {
-    const steps = [
-      { num: 1, label: 'Diagnóstico' },
-      { num: 2, label: 'FCD' },
-      { num: 3, label: 'Múltiplos' },
-      { num: 4, label: 'Inflação' },
-      { num: 5, label: 'EVA' },
-      { num: 6, label: 'Laudo' },
+  updateHeaderProgress(currentStep, computed) {
+    // Atualiza a faixa superior de métricas rápidas (EV, Equity, WACC)
+    if (computed && computed.valuation) {
+      const evEl = document.getElementById('strip-ev');
+      const eqEl = document.getElementById('strip-equity');
+      const waccEl = document.getElementById('strip-wacc');
+      if (evEl) evEl.textContent = `R$ ${computed.valuation.enterpriseValue.toFixed(1)}M`;
+      if (eqEl) eqEl.textContent = `R$ ${computed.valuation.equityValue.toFixed(1)}M`;
+      if (waccEl) waccEl.textContent = `${(computed.wacc * 100).toFixed(1)}%`;
+    }
+
+    const stepTitles = [
+      'Diagnóstico Inicial',
+      'Desafio FCD (Dr. Fluxo)',
+      'Madame Múltiplo',
+      'Choque da Inflação',
+      'Capitão EVA',
+      'Laudo M&A Final',
     ];
 
     const progressContainer = document.getElementById('journey-stepper');
     if (!progressContainer) return;
 
-    let html = '<div class="stepper-track">';
-    steps.forEach((s) => {
-      const activeClass = s.num === currentStep ? 'active' : s.num < currentStep ? 'completed' : '';
-      html += `
-        <button class="step-node ${activeClass}" data-step="${s.num}" title="${s.label}">
-          <span class="step-num">${s.num < currentStep ? '✓' : s.num}</span>
-          <span class="step-label">${s.label}</span>
+    const currentTitle = stepTitles[currentStep - 1] || 'Valuation';
+    const progressPct = ((currentStep / 6) * 100).toFixed(0);
+
+    let dotsHtml = '';
+    for (let i = 1; i <= 6; i++) {
+      const activeClass = i === currentStep ? 'active' : i < currentStep ? 'completed' : '';
+      dotsHtml += `
+        <button class="step-dot-btn ${activeClass}" data-step="${i}" title="${stepTitles[i - 1]}">
+          ${i < currentStep ? '✓' : i}
         </button>
       `;
-    });
-    html += '</div>';
+    }
 
-    progressContainer.innerHTML = html;
+    progressContainer.innerHTML = `
+      <div class="stepper-header-info">
+        <span class="stepper-title">${currentTitle}</span>
+        <span class="stepper-step-count">Passo ${currentStep}/6</span>
+      </div>
+      <div class="stepper-progress-bar-bg">
+        <div class="stepper-progress-fill" style="width: ${progressPct}%"></div>
+      </div>
+      <div class="stepper-track-mobile">
+        ${dotsHtml}
+      </div>
+    `;
 
-    progressContainer.querySelectorAll('.step-node').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
+    progressContainer.querySelectorAll('.step-dot-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
         const targetStep = parseInt(btn.getAttribute('data-step'), 10);
         sound.playClick();
         this.state.setStep(targetStep);
@@ -103,62 +138,80 @@ export class UIController {
     });
   }
 
+  updateBottomNav(currentStep) {
+    const bottomNav = document.getElementById('bottom-nav');
+    if (!bottomNav) return;
+
+    bottomNav.querySelectorAll('.nav-tab-btn').forEach((btn) => {
+      const tabStep = parseInt(btn.getAttribute('data-tab-step'), 10);
+      if (tabStep === currentStep) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+  }
+
   // ==========================================
-  // ETAPA 1: DIAGNÓSTICO INICIAL
+  // ETAPA 1: DIAGNÓSTICO INICIAL (MOBILE)
   // ==========================================
   renderStep1Diagnosis(container, comp, computed) {
     container.innerHTML = `
       <section class="step-view fade-in">
         <div class="hero-card">
-          <div class="hero-badge">CFO SIMULATOR • M&A & VALUATION</div>
+          <div class="hero-badge">CFO SIMULATOR • MOBILE EDITION</div>
           <h2 class="hero-title">AnimValue: O Preço do Sucesso</h2>
           <p class="hero-subtitle">
-            Você é o novo CFO da companhia. Um grande investidor estratégico e fundos de Private Equity 
-            manifestaram interesse em uma transação de aquisição (M&A). Sua missão é liderar o <strong>Valuation Consultivo</strong>, 
-            identificar as alavancas de valor e defender o preço justo do negócio!
+            Você é o novo CFO da empresa. Um fundo internacional de Private Equity quer fazer uma 
+            oferta de aquisição (M&A). Lidere o <strong>Valuation Consultivo</strong> e defenda o valor econômico do negócio!
           </p>
         </div>
 
         <!-- Seletor de Companhia -->
         <div class="section-card">
-          <h3 class="section-title">🏢 Selecione a Empresa para Avaliação</h3>
-          <p class="section-desc">Cada companhia opera em um setor com estruturas de capital, margens e dinâmicas distintas:</p>
+          <h3 class="section-title">🏢 Selecione a Empresa:</h3>
           <div class="company-selector-grid">
             <div class="company-card ${this.state.selectedCompanyId === 'techlog' ? 'selected' : ''}" data-id="techlog">
-              <div class="comp-icon">🚚💻</div>
-              <h4>TechLog Soluções</h4>
-              <span class="sector-tag tech">Setor Tecnologia</span>
-              <p>Receita R$ 100M • Margem EBITDA 22%</p>
+              <span class="comp-icon">🚚💻</span>
+              <div class="company-card-info">
+                <h4>TechLog Soluções</h4>
+                <span class="sector-tag tech">Tech B2B</span>
+                <p>Receita R$ 100M • Margem EBITDA 22%</p>
+              </div>
             </div>
             <div class="company-card ${this.state.selectedCompanyId === 'biosaudedigital' ? 'selected' : ''}" data-id="biosaudedigital">
-              <div class="comp-icon">🩺🔬</div>
-              <h4>BioSaúde Care</h4>
-              <span class="sector-tag saude">Setor Saúde</span>
-              <p>Receita R$ 120M • Margem EBITDA 25%</p>
+              <span class="comp-icon">🩺🔬</span>
+              <div class="company-card-info">
+                <h4>BioSaúde Care</h4>
+                <span class="sector-tag saude">Saúde Digital</span>
+                <p>Receita R$ 120M • Margem EBITDA 25%</p>
+              </div>
             </div>
             <div class="company-card ${this.state.selectedCompanyId === 'omnivarejo' ? 'selected' : ''}" data-id="omnivarejo">
-              <div class="comp-icon">🛍️📦</div>
-              <h4>Conecta Varejo</h4>
-              <span class="sector-tag varejo">Setor Varejo</span>
-              <p>Receita R$ 180M • Margem EBITDA 13%</p>
+              <span class="comp-icon">🛍️📦</span>
+              <div class="company-card-info">
+                <h4>Conecta Varejo</h4>
+                <span class="sector-tag varejo">Varejo Omni</span>
+                <p>Receita R$ 180M • Margem EBITDA 13%</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- DRE e Dados Básicos da Empresa Escolhida -->
+        <!-- Dados Básicos da Empresa Escolhida -->
         <div class="section-card">
           <div class="card-header-flex">
             <div>
               <h3 class="section-title">${comp.icon} ${comp.name}</h3>
               <p class="section-desc">${comp.tagline}</p>
             </div>
-            <span class="badge-status">Diagnóstico Financeiro Base</span>
+            <span class="badge-status">Diagnóstico Base</span>
           </div>
 
           <div class="metrics-grid-4">
             <div class="metric-card">
-              <span class="m-label">Receita Líquida (LTM)</span>
-              <span class="m-value">R$ ${comp.baseRevenue.toFixed(1)}M</span>
+              <span class="m-label">Receita LTM</span>
+              <span class="m-value">R$ ${comp.baseRevenue.toFixed(0)}M</span>
             </div>
             <div class="metric-card">
               <span class="m-label">EBITDA Atual</span>
@@ -167,53 +220,52 @@ export class UIController {
             </div>
             <div class="metric-card">
               <span class="m-label">Dívida Líquida</span>
-              <span class="m-value">R$ ${(comp.grossDebt - comp.cash).toFixed(1)}M</span>
-              <span class="m-sub">Dívida: R$ ${comp.grossDebt}M | Caixa: R$ ${comp.cash}M</span>
+              <span class="m-value">R$ ${(comp.grossDebt - comp.cash).toFixed(0)}M</span>
+              <span class="m-sub">Dív R$ ${comp.grossDebt}M / Cx R$ ${comp.cash}M</span>
             </div>
             <div class="metric-card">
               <span class="m-label">Capital Investido</span>
-              <span class="m-value">R$ ${comp.investedCapital.toFixed(1)}M</span>
-              <span class="m-sub">Ativo Operacional Líquido</span>
+              <span class="m-value">R$ ${comp.investedCapital.toFixed(0)}M</span>
+              <span class="m-sub">Ativo Operacional</span>
             </div>
           </div>
         </div>
 
         <!-- Apresentação dos 3 Especialistas -->
         <div class="section-card">
-          <h3 class="section-title">👥 O Conselho de Especialistas</h3>
-          <p class="section-desc">Você será assessorado e cobrado por 3 conselheiros animados que defendem visões complementares:</p>
+          <h3 class="section-title">👥 Conselho Consultivo:</h3>
           <div class="characters-grid">
-            <div class="character-card doctor-theme">
+            <div class="character-card">
               <div class="char-avatar-mini">${characters.doctor.avatarSvg}</div>
               <div class="char-info">
                 <h4>${characters.doctor.name}</h4>
                 <span class="char-role">${characters.doctor.role}</span>
-                <p>"${characters.doctor.dialogues.intro}"</p>
+                <p>"Fluxo de caixa livre futuro trazido a valor presente é a única verdade intrínseca!"</p>
               </div>
             </div>
-            <div class="character-card madame-theme">
+            <div class="character-card">
               <div class="char-avatar-mini">${characters.madame.avatarSvg}</div>
               <div class="char-info">
                 <h4>${characters.madame.name}</h4>
                 <span class="char-role">${characters.madame.role}</span>
-                <p>"${characters.madame.dialogues.intro}"</p>
+                <p>"O mercado tem sempre uma opinião rápida. Olhe os múltiplos dos concorrentes!"</p>
               </div>
             </div>
-            <div class="character-card captain-theme">
+            <div class="character-card">
               <div class="char-avatar-mini">${characters.captain.avatarSvg}</div>
               <div class="char-info">
                 <h4>${characters.captain.name}</h4>
                 <span class="char-role">${characters.captain.role}</span>
-                <p>"${characters.captain.dialogues.intro}"</p>
+                <p>"Lucro contábil é ilusão se não pagar o custo de capital. Exija ROIC > WACC!"</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Ação de Início -->
+        <!-- Ação Principal para Polegar -->
         <div class="action-footer">
           <button id="start-journey-btn" class="btn btn-primary btn-large glow">
-            Iniciar o Desafio do Doutor Fluxo (FCD) ➔
+            Iniciar o Desafio FCD ➔
           </button>
         </div>
       </section>
@@ -251,39 +303,38 @@ export class UIController {
           <div class="char-avatar-sm">${characters.doctor.avatarSvg}</div>
           <div class="dialogue-body">
             <div class="dialogue-header">
-              <span class="char-title">${characters.doctor.name} (${characters.doctor.role})</span>
+              <span class="char-title">${characters.doctor.name}</span>
               <span class="tag-fcd">Fluxo de Caixa Descontado</span>
             </div>
             <p class="speech-text">
-              "Bem-vindo ao laboratório da criação de valor intrínseco! Ajuste os sliders de crescimento, margem e taxa de desconto. 
-              Veja em tempo real como o <strong>Enterprise Value (EV)</strong> e o <strong>Equity Value</strong> se comportam. 
-              Lembre-se: caixa futuro vale menos hoje por causa do WACC!"
+              "Toque e deslize para ajustar crescimento, margens e taxas. 
+              Veja o <strong>Enterprise Value</strong> e o <strong>WACC</strong> mudando instantaneamente!"
             </p>
           </div>
         </div>
 
         <!-- Cenários Rápidos -->
         <div class="scenarios-bar">
-          <span class="scenario-label">Cenários Prontos:</span>
+          <span class="scenario-label">Cenários:</span>
           <button class="chip-btn ${this.state.activeScenario === 'otimista' ? 'active green' : ''}" data-scenario="otimista">
             🚀 Otimista
           </button>
           <button class="chip-btn ${this.state.activeScenario === 'base' ? 'active blue' : ''}" data-scenario="base">
-            ⚖️ Caso Base
+            ⚖️ Base
           </button>
           <button class="chip-btn ${this.state.activeScenario === 'pessimista' ? 'active red' : ''}" data-scenario="pessimista">
             🌧️ Pessimista
           </button>
         </div>
 
-        <!-- Grid de Sliders Táteis -->
+        <!-- Sliders Táteis -->
         <div class="section-card">
-          <h3 class="section-title">🎛️ Alavancas de Projeção & Custo de Capital</h3>
+          <h3 class="section-title">🎛️ Alavancas de Projeção:</h3>
           <div class="sliders-grid">
             <!-- 1. Crescimento de Receita -->
             <div class="slider-control">
               <div class="slider-header">
-                <label for="sl-growth">Crescimento Anual da Receita (g)</label>
+                <label for="sl-growth">Crescimento Anual (g)</label>
                 <span class="slider-badge" id="val-growth">${(p.growthRate * 100).toFixed(1)}%</span>
               </div>
               <input type="range" id="sl-growth" min="0.02" max="0.30" step="0.005" value="${p.growthRate}">
@@ -293,7 +344,7 @@ export class UIController {
             <!-- 2. Margem EBITDA -->
             <div class="slider-control">
               <div class="slider-header">
-                <label for="sl-margin">Margem EBITDA Média</label>
+                <label for="sl-margin">Margem EBITDA</label>
                 <span class="slider-badge highlight" id="val-margin">${(p.ebitdaMargin * 100).toFixed(1)}%</span>
               </div>
               <input type="range" id="sl-margin" min="0.05" max="0.35" step="0.005" value="${p.ebitdaMargin}">
@@ -303,7 +354,7 @@ export class UIController {
             <!-- 3. Crescimento Perpétuo Gordon (g terminal) -->
             <div class="slider-control">
               <div class="slider-header">
-                <label for="sl-term-growth">Crescimento Perpétuo (Gordon g)</label>
+                <label for="sl-term-growth">Crescimento Perpétuo (g)</label>
                 <span class="slider-badge" id="val-term-growth">${(p.terminalGrowth * 100).toFixed(1)}%</span>
               </div>
               <input type="range" id="sl-term-growth" min="0.01" max="0.045" step="0.002" value="${p.terminalGrowth}">
@@ -313,14 +364,14 @@ export class UIController {
             <!-- 4. Custo da Dívida Bruto (Kd) -->
             <div class="slider-control">
               <div class="slider-header">
-                <label for="sl-kd">Custo Bruto da Dívida (Kd)</label>
+                <label for="sl-kd">Custo da Dívida (Kd)</label>
                 <span class="slider-badge" id="val-kd">${(p.kdGross * 100).toFixed(1)}%</span>
               </div>
               <input type="range" id="sl-kd" min="0.06" max="0.22" step="0.005" value="${p.kdGross}">
               <div class="slider-bounds"><span>6.0%</span><span>22.0%</span></div>
             </div>
 
-            <!-- 5. Taxa Livre de Risco (Rf / Selic Base) -->
+            <!-- 5. Taxa Livre de Risco (Rf) -->
             <div class="slider-control">
               <div class="slider-header">
                 <label for="sl-rf">Taxa Livre de Risco (Rf)</label>
@@ -333,7 +384,7 @@ export class UIController {
             <!-- 6. Capex (% da Receita) -->
             <div class="slider-control">
               <div class="slider-header">
-                <label for="sl-capex">Reinvestimento em Capex (% Receita)</label>
+                <label for="sl-capex">Capex (% Receita)</label>
                 <span class="slider-badge" id="val-capex">${(p.capexRate * 100).toFixed(1)}%</span>
               </div>
               <input type="range" id="sl-capex" min="0.02" max="0.12" step="0.005" value="${p.capexRate}">
@@ -344,49 +395,49 @@ export class UIController {
 
         <!-- Placar Resumo do Valuation FCD -->
         <div class="valuation-summary-strip">
-          <div class="summary-pill">
-            <span class="pill-title">WACC Resultante</span>
-            <span class="pill-value">${(wacc * 100).toFixed(2)}%</span>
-            <span class="pill-sub">Ke: ${(ke * 100).toFixed(1)}% | Kd líquido: ${(p.kdGross * (1 - comp.taxRate) * 100).toFixed(1)}%</span>
-          </div>
           <div class="summary-pill highlight-blue">
-            <span class="pill-title">Enterprise Value (EV)</span>
+            <span class="pill-title">Enterprise Value</span>
             <span class="pill-value">R$ ${valuation.enterpriseValue.toFixed(1)}M</span>
             <span class="pill-sub">Firma Total</span>
           </div>
           <div class="summary-pill highlight-green">
-            <span class="pill-title">Equity Value (Acionistas)</span>
+            <span class="pill-title">Equity Value</span>
             <span class="pill-value">R$ ${valuation.equityValue.toFixed(1)}M</span>
-            <span class="pill-sub">EV - Dívida Líq. (R$ ${valuation.netDebt.toFixed(1)}M)</span>
+            <span class="pill-sub">Sócios (EV - Dív. Líq)</span>
           </div>
           <div class="summary-pill">
-            <span class="pill-title">Peso Valor Terminal</span>
-            <span class="pill-value">${valuation.terminalValuePercentage.toFixed(1)}%</span>
-            <span class="pill-sub">VP VT / EV Total</span>
+            <span class="pill-title">WACC</span>
+            <span class="pill-value">${(wacc * 100).toFixed(2)}%</span>
+            <span class="pill-sub">Ke ${(ke * 100).toFixed(1)}% | Kd líq ${(p.kdGross * (1 - comp.taxRate) * 100).toFixed(1)}%</span>
+          </div>
+          <div class="summary-pill">
+            <span class="pill-title">Valor Terminal</span>
+            <span class="pill-value">${valuation.terminalValuePercentage.toFixed(0)}%</span>
+            <span class="pill-sub">Peso no EV Total</span>
           </div>
         </div>
 
-        <!-- Visualização Gráfica -->
+        <!-- Gráficos -->
         <div class="charts-double-grid">
           <div class="section-card">
-            <h4 class="card-subtitle">📊 Fluxos Projetados Descontados (Anos 1-5 + VT)</h4>
+            <h4 class="card-subtitle">📊 Fluxos Projetados Descontados</h4>
             <div id="fcff-chart-mount"></div>
           </div>
           <div class="section-card">
-            <h4 class="card-subtitle">🌉 Cascata de Valor: EV para Equity Value</h4>
+            <h4 class="card-subtitle">🌉 Ponte de Valor (EV para Equity)</h4>
             <div id="waterfall-chart-mount"></div>
           </div>
         </div>
 
-        <!-- Tabela DRE Projetada Completa -->
+        <!-- Tabela DRE Projetada com Scroll Tátil -->
         <div class="section-card">
+          <h4 class="card-subtitle">📋 DRE e FCFF Projetado (5 Anos)</h4>
+          <div class="table-scroll-hint">👉 Deslize horizontalmente para navegar</div>
           <div class="table-responsive">
-            <h4 class="card-subtitle">📋 Projeção Operacional e FCFF Detalhada (R$ Milhões)</h4>
             <table class="financial-table">
               <thead>
                 <tr>
                   <th>Métrica</th>
-                  <th>Ano 0 (Base)</th>
                   <th>Ano 1</th>
                   <th>Ano 2</th>
                   <th>Ano 3</th>
@@ -396,34 +447,24 @@ export class UIController {
               </thead>
               <tbody>
                 <tr>
-                  <td>Receita Líquida</td>
-                  <td>${comp.baseRevenue.toFixed(1)}</td>
-                  ${projections.map((p) => `<td>${p.revenue.toFixed(1)}</td>`).join('')}
+                  <td>Receita</td>
+                  ${projections.map((p) => `<td>${p.revenue.toFixed(0)}M</td>`).join('')}
                 </tr>
                 <tr>
                   <td>EBITDA</td>
-                  <td>${(comp.baseRevenue * comp.baseEbitdaMargin).toFixed(1)}</td>
-                  ${projections.map((p) => `<td>${p.ebitda.toFixed(1)}</td>`).join('')}
+                  ${projections.map((p) => `<td>${p.ebitda.toFixed(1)}M</td>`).join('')}
                 </tr>
                 <tr>
-                  <td>EBIT (Operacional)</td>
-                  <td>${(comp.baseRevenue * (comp.baseEbitdaMargin - comp.baseDaRate)).toFixed(1)}</td>
-                  ${projections.map((p) => `<td>${p.ebit.toFixed(1)}</td>`).join('')}
-                </tr>
-                <tr>
-                  <td>NOPAT (Pós-IR)</td>
-                  <td>-</td>
-                  ${projections.map((p) => `<td>${p.nopat.toFixed(1)}</td>`).join('')}
+                  <td>NOPAT</td>
+                  ${projections.map((p) => `<td>${p.nopat.toFixed(1)}M</td>`).join('')}
                 </tr>
                 <tr class="fcf-row">
-                  <td><strong>FCFF (Fluxo Livre)</strong></td>
-                  <td>-</td>
-                  ${projections.map((p) => `<td><strong>${p.fcff.toFixed(1)}</strong></td>`).join('')}
+                  <td><strong>FCFF</strong></td>
+                  ${projections.map((p) => `<td><strong>${p.fcff.toFixed(1)}M</strong></td>`).join('')}
                 </tr>
                 <tr class="pv-row">
-                  <td>VP FCFF (desc. WACC)</td>
-                  <td>-</td>
-                  ${computed.pvFlows.discountedFlows.map((p) => `<td>${p.pvFCFF.toFixed(1)}</td>`).join('')}
+                  <td>VP FCFF</td>
+                  ${computed.pvFlows.discountedFlows.map((p) => `<td>${p.pvFCFF.toFixed(1)}M</td>`).join('')}
                 </tr>
               </tbody>
             </table>
@@ -433,7 +474,7 @@ export class UIController {
         <!-- Próxima Etapa -->
         <div class="action-footer">
           <button id="goto-step3-btn" class="btn btn-primary btn-large">
-            Avançar para Madame Múltiplo (Múltiplos de Mercado) ➔
+            Avançar para Madame Múltiplo ➔
           </button>
         </div>
       </section>
@@ -491,12 +532,12 @@ export class UIController {
           <div class="char-avatar-sm">${characters.madame.avatarSvg}</div>
           <div class="dialogue-body">
             <div class="dialogue-header">
-              <span class="char-title">${characters.madame.name} (${characters.madame.role})</span>
+              <span class="char-title">${characters.madame.name}</span>
               <span class="tag-multiples">Avaliação Relativa</span>
             </div>
             <p class="speech-text">
-              "Chegou a hora da verdade, queridinho! O Doutor Fluxo adorou as fórmulas dele, mas o que os investidores reais 
-              pagam na bolsa e nas mesas de M&A? Vamos comparar seus múltiplos implícitos com as empresas semelhantes do setor!"
+              "O Doutor Fluxo ama fórmulas, mas os investidores compram comparando com a bolsa! 
+              Veja como seu EV/EBITDA se posiciona diante dos concorrentes:"
             </p>
           </div>
         </div>
@@ -506,7 +547,7 @@ export class UIController {
           <div class="discrepancy-header">
             <h4>${discrepancy.status}</h4>
             <span class="gap-badge" style="background: ${discrepancy.color}22; color: ${discrepancy.color}; border: 1px solid ${discrepancy.color};">
-              Diferença vs Mediana: ${discrepancy.gapPercentage >= 0 ? '+' : ''}${discrepancy.gapPercentage.toFixed(1)}%
+              Gap: ${discrepancy.gapPercentage >= 0 ? '+' : ''}${discrepancy.gapPercentage.toFixed(1)}%
             </span>
           </div>
           <p class="discrepancy-feedback">${discrepancy.feedback}</p>
@@ -515,7 +556,7 @@ export class UIController {
         <!-- Comparação de Métricas Implícitas vs Setor -->
         <div class="multiples-comparison-grid">
           <div class="metric-box">
-            <span class="m-sub">Múltiplo EV/EBITDA</span>
+            <span class="m-sub">EV/EBITDA Implícito</span>
             <div class="m-compare-values">
               <div>
                 <span class="badge-label">Sua Empresa</span>
@@ -543,74 +584,52 @@ export class UIController {
               </div>
             </div>
           </div>
-
-          <div class="metric-box">
-            <span class="m-sub">EV/Receita</span>
-            <div class="m-compare-values">
-              <div>
-                <span class="badge-label">Sua Empresa</span>
-                <span class="m-large">${impliedMultiples.impliedEvRevenue.toFixed(2)}x</span>
-              </div>
-              <span class="compare-divider">vs</span>
-              <div>
-                <span class="badge-label">Mediana Setor</span>
-                <span class="m-large">${sectorAverages.medianEvRevenue.toFixed(2)}x</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- Gráfico Comparativo -->
         <div class="section-card">
-          <h4 class="card-subtitle">📊 Comparação de EV/EBITDA com Concorrentes Virtuais</h4>
+          <h4 class="card-subtitle">📊 EV/EBITDA vs Pares de Mercado</h4>
           <div id="multiples-chart-mount"></div>
         </div>
 
         <!-- Tabela de Comparáveis de Mercado -->
         <div class="section-card">
-          <h4 class="card-subtitle">🏢 Painel de Pares do Mercado (${comp.sector.toUpperCase()})</h4>
+          <h4 class="card-subtitle">🏢 Comparáveis do Setor (${comp.sector.toUpperCase()})</h4>
+          <div class="table-scroll-hint">👉 Deslize horizontalmente para ver os pares</div>
           <div class="table-responsive">
             <table class="financial-table">
               <thead>
                 <tr>
-                  <th>Companhia</th>
-                  <th>Descrição</th>
+                  <th>Empresa</th>
                   <th>EV/EBITDA</th>
                   <th>P/L</th>
-                  <th>EV/Receita</th>
-                  <th>Margem EBITDA</th>
+                  <th>EV/Rec.</th>
                 </tr>
               </thead>
               <tbody>
                 <tr class="highlight-user-row">
-                  <td><strong>${comp.name} (Sua)</strong></td>
-                  <td>Valuation Implícito pelo FCD</td>
+                  <td><strong>${comp.name}</strong></td>
                   <td><strong>${impliedMultiples.impliedEvEbitda.toFixed(1)}x</strong></td>
                   <td><strong>${impliedMultiples.impliedPe.toFixed(1)}x</strong></td>
-                  <td><strong>${impliedMultiples.impliedEvRevenue.toFixed(2)}x</strong></td>
-                  <td>${(this.state.assumptions.ebitdaMargin * 100).toFixed(0)}%</td>
+                  <td><strong>${impliedMultiples.impliedEvRevenue.toFixed(1)}x</strong></td>
                 </tr>
                 ${peers
                   .map(
                     (p) => `
                   <tr>
-                    <td><strong>${p.name}</strong></td>
-                    <td>${p.description}</td>
+                    <td>${p.name.split(' ')[0]}</td>
                     <td>${p.evEbitda.toFixed(1)}x</td>
                     <td>${p.peRatio.toFixed(1)}x</td>
-                    <td>${p.evRevenue.toFixed(2)}x</td>
-                    <td>${(p.ebitdaMargin * 100).toFixed(0)}%</td>
+                    <td>${p.evRevenue.toFixed(1)}x</td>
                   </tr>
                 `
                   )
                   .join('')}
                 <tr class="median-row">
-                  <td><strong>Mediana do Setor</strong></td>
-                  <td>Parâmetro de Mercado</td>
+                  <td><strong>Mediana</strong></td>
                   <td><strong>${sectorAverages.medianEvEbitda.toFixed(1)}x</strong></td>
                   <td><strong>${sectorAverages.medianPe.toFixed(1)}x</strong></td>
-                  <td><strong>${sectorAverages.medianEvRevenue.toFixed(2)}x</strong></td>
-                  <td>-</td>
+                  <td><strong>${sectorAverages.medianEvRevenue.toFixed(1)}x</strong></td>
                 </tr>
               </tbody>
             </table>
@@ -619,22 +638,15 @@ export class UIController {
 
         <!-- Confronto: FCD vs Valuation Relativo -->
         <div class="section-card">
-          <h4 class="card-subtitle">⚖️ O Confronto: FCD Intrínseco vs Valuation por Múltiplos</h4>
+          <h4 class="card-subtitle">⚖️ FCD Intrínseco vs Múltiplos de Mercado</h4>
           <div class="methods-compare-grid">
             <div class="method-card">
-              <span class="m-title">FCD (Doutor Fluxo)</span>
+              <span class="m-title">FCD (Doutor Fluxo):</span>
               <span class="m-val">R$ ${valuation.enterpriseValue.toFixed(1)}M</span>
-              <span class="m-desc">Baseado no caixa futuro descontado</span>
             </div>
             <div class="method-card">
-              <span class="m-title">EV/EBITDA Mediano (Madame Múltiplo)</span>
+              <span class="m-title">EV/EBITDA Mediano:</span>
               <span class="m-val">R$ ${relativeValuation.byEbitda.ev.toFixed(1)}M</span>
-              <span class="m-desc">EBITDA × ${sectorAverages.medianEvEbitda}x</span>
-            </div>
-            <div class="method-card">
-              <span class="m-title">Consenso Relativo (Média de Múltiplos)</span>
-              <span class="m-val">R$ ${relativeValuation.consensus.ev.toFixed(1)}M</span>
-              <span class="m-desc">Média ponderada do mercado</span>
             </div>
           </div>
         </div>
@@ -642,10 +654,10 @@ export class UIController {
         <!-- Ação para o Choque da Inflação -->
         <div class="action-footer double-actions">
           <button id="back-to-fcd" class="btn btn-secondary">
-            ⬅️ Ajustar Premissas no FCD
+            ⬅️ Ajustar FCD
           </button>
-          <button id="goto-step4-btn" class="btn btn-primary btn-large glow-warning">
-            🔥 Enfrentar o Choque da Inflação! ➔
+          <button id="goto-step4-btn" class="btn btn-primary glow-warning">
+            🔥 Choque da Inflação! ➔
           </button>
         </div>
       </section>
@@ -673,10 +685,9 @@ export class UIController {
   }
 
   // ==========================================
-  // ETAPA 4: SOBREVIVENDO À INFLAÇÃO
+  // ETAPA 4: SOBREVIVENDO À INFLAÇÃO (MOBILE)
   // ==========================================
   renderStep4InflationShock(container, comp, computed) {
-    const shock = computed.discrepancy ? this.state.macroShockState : null;
     const shockData = this.state.macroShockState;
     const choices = shockData.selectedChoices;
 
@@ -684,53 +695,50 @@ export class UIController {
       <section class="step-view fade-in">
         <!-- Alerta de Choque Macroeconômico -->
         <div class="macro-crisis-banner">
-          <div class="crisis-badge">⚠️ EVENTO MACROECONÔMICO CRÍTICO</div>
-          <h2>🔥 Choque da Inflação & Explosão da Taxa de Juros</h2>
+          <div class="crisis-badge">⚠️ CRISE MACROECONÔMICA</div>
+          <h2>🔥 Inflação a 9,8% & Explosão de Juros!</h2>
           <p>
-            A inflação acelerou bruscamente para <strong>9,8% a.a.</strong> O Banco Central elevou a Selic, 
-            fazendo a taxa livre de risco saltar <strong>+5,0 p.p.</strong> e os juros bancários <strong>+5,5 p.p.</strong>!
-            Fornecedores e custos operacionais estão espremendo sua margem EBITDA em até 3,5 pontos percentuais!
+            O Banco Central elevou a Selic. Taxa livre de risco (+5,0 p.p.) e juros bancários (+5,5 p.p.) dispararam, 
+            e custos operacionais pressionam sua margem EBITDA em até 3,5 pontos percentuais!
           </p>
         </div>
 
-        <!-- Efeito Teórico da Inflação no Valuation -->
+        <!-- Regra de Ouro -->
         <div class="lesson-box">
           <h4>💡 A Regra de Ouro do CFO sob Inflação:</h4>
           <p>
-            A inflação ataca o valuation por dois lados: <strong>corrói o fluxo de caixa livre (numerador)</strong> 
-            e <strong>eleva a taxa de desconto WACC (denominador)</strong>. Para que o valor da empresa não desabe, 
-            você precisa fazer a geração de caixa crescer a uma taxa superior ao aumento do custo de capital:
-            <span class="formula-highlight">Taxa de Crescimento do Fluxo (g) > ΔWACC</span>!
+            Para o valor não desabar, o fluxo de caixa precisa crescer acima do aumento do custo de capital:
+            <span class="formula-highlight">g (caixa) > ΔWACC</span>!
           </p>
         </div>
 
         <!-- 3 Decisões Táticas do Jogador -->
         <div class="section-card">
-          <h3 class="section-title">🛡️ Suas Decisões Táticas para Salvar a Empresa</h3>
+          <h3 class="section-title">🛡️ Decisões Táticas do CFO:</h3>
 
           <!-- Decisão 1: Precificação -->
           <div class="decision-block">
-            <h4>1. Poder de Preço (Pricing Power): O que fazer com seus preços de venda?</h4>
+            <h4>1. Poder de Preço (Pricing Power):</h4>
             <div class="choice-cards-grid">
               <label class="choice-card ${choices.pricing === 'full_pass' ? 'active' : ''}">
                 <input type="radio" name="opt-pricing" value="full_pass" ${choices.pricing === 'full_pass' ? 'checked' : ''}>
                 <div class="choice-content">
                   <span class="c-badge green">Repasse Integral (+9.8%)</span>
-                  <p>Repassar toda a inflação. Margem EBITDA preservada intacta, com leve queda de volume (-3%).</p>
+                  <p>Repassar toda a inflação. Margem EBITDA blindada, leve queda de volume (-3%).</p>
                 </div>
               </label>
               <label class="choice-card ${choices.pricing === 'partial_pass' ? 'active' : ''}">
                 <input type="radio" name="opt-pricing" value="partial_pass" ${choices.pricing === 'partial_pass' ? 'checked' : ''}>
                 <div class="choice-content">
                   <span class="c-badge amber">Repasse Parcial (+5.0%)</span>
-                  <p>Absorver metade para defender fatia de mercado. Margem EBITDA comprime 2,0 p.p.</p>
+                  <p>Absorver metade para defender mercado. Margem EBITDA comprime 2,0 p.p.</p>
                 </div>
               </label>
               <label class="choice-card ${choices.pricing === 'value_added' ? 'active' : ''}">
                 <input type="radio" name="opt-pricing" value="value_added" ${choices.pricing === 'value_added' ? 'checked' : ''}>
                 <div class="choice-content">
                   <span class="c-badge blue">Reempacotamento Premium</span>
-                  <p>Reajustar 7% agregando serviços adicionais de alto valor percebido. Margem e fidelidade protegidas.</p>
+                  <p>Reajuste de 7% com novos serviços de alto valor. Margem e fidelidade protegidas.</p>
                 </div>
               </label>
             </div>
@@ -738,20 +746,20 @@ export class UIController {
 
           <!-- Decisão 2: Eficiência e Capex -->
           <div class="decision-block">
-            <h4>2. Eficiência de Custos e Reinvestimento: Qual a postura operacional?</h4>
+            <h4>2. Eficiência de Custos e Capex:</h4>
             <div class="choice-cards-grid">
               <label class="choice-card ${choices.efficiency === 'austerity' ? 'active' : ''}">
                 <input type="radio" name="opt-efficiency" value="austerity" ${choices.efficiency === 'austerity' ? 'checked' : ''}>
                 <div class="choice-content">
-                  <span class="c-badge green">Plano de Austeridade & Foco em Caixa</span>
-                  <p>Congelar investimentos não essenciais (Capex cai de 5% para 3% da receita) para blindar o FCF.</p>
+                  <span class="c-badge green">Austeridade & Foco em Caixa</span>
+                  <p>Capex cai de 5% para 3% da receita. Preserva fluxo de caixa livre imediato.</p>
                 </div>
               </label>
               <label class="choice-card ${choices.efficiency === 'keep_investing' ? 'active' : ''}">
                 <input type="radio" name="opt-efficiency" value="keep_investing" ${choices.efficiency === 'keep_investing' ? 'checked' : ''}>
                 <div class="choice-content">
-                  <span class="c-badge red">Expansão Contracíclica Agressiva</span>
-                  <p>Manter Capex acelerado para abocanhar concorrentes enfraquecidos, aceitando drenagem de caixa.</p>
+                  <span class="c-badge red">Expansão Agressiva</span>
+                  <p>Manter Capex acelerado para ganhar terreno de concorrentes em apuros.</p>
                 </div>
               </label>
             </div>
@@ -759,44 +767,41 @@ export class UIController {
 
           <!-- Decisão 3: Estrutura de Capital -->
           <div class="decision-block">
-            <h4>3. Gestão de Dívida: Com juros galopantes, como gerenciar o passivo?</h4>
+            <h4>3. Gestão da Dívida com Juros Altos:</h4>
             <div class="choice-cards-grid">
               <label class="choice-card ${choices.capital_structure === 'deleveraging' ? 'active' : ''}">
                 <input type="radio" name="opt-capital" value="deleveraging" ${choices.capital_structure === 'deleveraging' ? 'checked' : ''}>
                 <div class="choice-content">
                   <span class="c-badge green">Desalavancar R$ 10M com Caixa</span>
-                  <p>Quitar dívidas bancárias caras de juros flutuantes, diminuindo a alavancagem e o WACC da firma.</p>
+                  <p>Amortizar dívidas flutuantes caras, reduzindo risco e aliviando o WACC.</p>
                 </div>
               </label>
               <label class="choice-card ${choices.capital_structure === 'hold_cash' ? 'active' : ''}">
                 <input type="radio" name="opt-capital" value="hold_cash" ${choices.capital_structure === 'hold_cash' ? 'checked' : ''}>
                 <div class="choice-content">
-                  <span class="c-badge blue">Preservar Liquidez em Caixa</span>
-                  <p>Manter reservas intocadas rendendo a nova Selic pós-fixada como proteção contra crises de crédito.</p>
+                  <span class="c-badge blue">Preservar Caixa em Renda Fixa</span>
+                  <p>Manter colchão de liquidez rendendo a nova Selic alta pós-fixada.</p>
                 </div>
               </label>
             </div>
           </div>
         </div>
 
-        <!-- Impacto Comparativo pós-decisões -->
+        <!-- Métricas Pós-Decisões -->
         <div class="section-card">
-          <h4 class="card-subtitle">📈 Impacto das Suas Decisões no Valuation Atual</h4>
+          <h4 class="card-subtitle">📈 Valuation Após Medidas do CFO</h4>
           <div class="metrics-grid-3">
             <div class="metric-card">
-              <span class="m-label">Novo WACC Inflacionado</span>
-              <span class="m-value highlight">${(computed.wacc * 100).toFixed(2)}%</span>
-              <span class="m-sub">Taxa de desconto reajustada</span>
+              <span class="m-label">WACC Final</span>
+              <span class="m-value highlight">${(computed.wacc * 100).toFixed(1)}%</span>
             </div>
             <div class="metric-card">
-              <span class="m-label">Enterprise Value Resiliente</span>
+              <span class="m-label">EV Protegido</span>
               <span class="m-value">R$ ${computed.valuation.enterpriseValue.toFixed(1)}M</span>
-              <span class="m-sub">Após mitigação de margem e FCF</span>
             </div>
             <div class="metric-card">
-              <span class="m-label">Equity Value Protegido</span>
+              <span class="m-label">Equity Sócios</span>
               <span class="m-value highlight-green">R$ ${computed.valuation.equityValue.toFixed(1)}M</span>
-              <span class="m-sub">Valor aos acionistas</span>
             </div>
           </div>
         </div>
@@ -804,13 +809,13 @@ export class UIController {
         <!-- Ação para o Capitão EVA -->
         <div class="action-footer">
           <button id="goto-step5-btn" class="btn btn-primary btn-large">
-            O Julgamento do Capitão EVA (Criação de Riqueza) ➔
+            O Julgamento do Capitão EVA ➔
           </button>
         </div>
       </section>
     `;
 
-    // Radio button handlers
+    // Handlers de rádio
     const setupRadioGroup = (name, category) => {
       container.querySelectorAll(`input[name="${name}"]`).forEach((radio) => {
         radio.addEventListener('change', (e) => {
@@ -831,7 +836,7 @@ export class UIController {
   }
 
   // ==========================================
-  // ETAPA 5: O JULGAMENTO DO CAPITÃO EVA
+  // ETAPA 5: O JULGAMENTO DO CAPITÃO EVA (MOBILE)
   // ==========================================
   renderStep5CaptainEVA(container, comp, computed) {
     const { evaComparison, evaProgression, wacc } = computed;
@@ -843,47 +848,45 @@ export class UIController {
           <div class="char-avatar-sm">${characters.captain.avatarSvg}</div>
           <div class="dialogue-body">
             <div class="dialogue-header">
-              <span class="char-title">${characters.captain.name} (${characters.captain.role})</span>
+              <span class="char-title">${characters.captain.name}</span>
               <span class="tag-eva">Valor Econômico Adicionado (EVA)</span>
             </div>
             <p class="speech-text">
-              "${characters.captain.dialogues.intro}"
+              "Bem-vindo ao tribunal da riqueza! 
+              Não comemore lucro contábil na DRE se o seu retorno (ROIC) não cobrir o custo de capital (WACC)!"
             </p>
           </div>
         </div>
 
-        <!-- Diagnóstico de Criação vs Destruição -->
+        <!-- Veredito EVA -->
         <div class="eva-verdict-card ${evaComparison.badgeType}">
           <div class="verdict-header">
             <h4>${evaComparison.statusText}</h4>
             <span class="eva-pill-tag">
-              EVA Ano 1: R$ ${evaComparison.eva >= 0 ? '+' : ''}${evaComparison.eva.toFixed(2)}M
+              EVA: R$ ${evaComparison.eva >= 0 ? '+' : ''}${evaComparison.eva.toFixed(2)}M
             </span>
           </div>
           <p class="verdict-explanation">${evaComparison.explanation}</p>
         </div>
 
-        <!-- Visualização Gráfica do Spread ROIC vs WACC -->
+        <!-- Gráfico de Spread ROIC vs WACC -->
         <div class="section-card">
           <h4 class="card-subtitle">🎯 O Teste da Riqueza: ROIC vs WACC</h4>
           <div id="eva-chart-mount"></div>
         </div>
 
-        <!-- Paradoxo Didático: Lucro Contábil vs Lucro Econômico -->
+        <!-- Paradoxo Didático -->
         <div class="section-card">
           <h4 class="card-subtitle">⚖️ O Paradoxo Contábil vs Econômico</h4>
-          <p class="section-desc">Entenda por que empresas lucrativas na DRE podem estar sangrando o patrimônio dos sócios:</p>
-          
           <div class="accounting-vs-economic-grid">
             <div class="box-method">
               <div class="box-head">
-                <h5>Visão Contábil Tradicional</h5>
-                <span class="tag-acc">DRE Clássica</span>
+                <h5>Visão Contábil (DRE)</h5>
+                <span class="tag-acc">DRE</span>
               </div>
               <ul class="method-calc-list">
                 <li><span>Lucro Operacional (EBIT):</span> <strong>R$ ${computed.projections[0].ebit.toFixed(1)}M</strong></li>
                 <li><span>Despesas Financeiras (Juros):</span> <strong>-R$ ${(computed.valuation.grossDebt * this.state.assumptions.kdGross).toFixed(1)}M</strong></li>
-                <li><span>Impostos sobre Lucro:</span> <strong>-R$ ${((computed.projections[0].ebit - (computed.valuation.grossDebt * this.state.assumptions.kdGross)) * comp.taxRate).toFixed(1)}M</strong></li>
                 <li class="result-line">
                   <span>Lucro Líquido Contábil:</span> 
                   <strong class="${evaComparison.netAccountingProfit >= 0 ? 'color-green' : 'color-red'}">
@@ -898,81 +901,30 @@ export class UIController {
 
             <div class="box-method highlight-economic">
               <div class="box-head">
-                <h5>Visão Econômica Moderna (EVA)</h5>
-                <span class="tag-eco">Custo de Oportunidade</span>
+                <h5>Visão Econômica (EVA)</h5>
+                <span class="tag-eco">EVA</span>
               </div>
               <ul class="method-calc-list">
-                <li><span>NOPAT (Lucro Operacional Líquido):</span> <strong>R$ ${evaComparison.nopat.toFixed(1)}M</strong></li>
-                <li><span>Capital Total Investido:</span> <strong>R$ ${comp.investedCapital.toFixed(1)}M</strong></li>
-                <li><span>Custo do Capital (WACC):</span> <strong>${(wacc * 100).toFixed(1)}%</strong></li>
-                <li><span>Capital Charge (CI × WACC):</span> <strong>-R$ ${evaComparison.capitalCharge.toFixed(2)}M</strong></li>
+                <li><span>NOPAT Operacional:</span> <strong>R$ ${evaComparison.nopat.toFixed(1)}M</strong></li>
+                <li><span>Custo do Capital (CI × WACC):</span> <strong>-R$ ${evaComparison.capitalCharge.toFixed(2)}M</strong></li>
                 <li class="result-line">
-                  <span>Valor Econômico Adicionado (EVA):</span> 
+                  <span>Valor Econômico Adicionado:</span> 
                   <strong class="${evaComparison.eva >= 0 ? 'color-green' : 'color-red'}">
                     R$ ${evaComparison.eva >= 0 ? '+' : ''}${evaComparison.eva.toFixed(2)}M
                   </strong>
                 </li>
               </ul>
               <div class="box-footer">
-                ${evaComparison.eva >= 0 ? '🌟 Cria Riqueza Genuína' : '⚠️ Destrói Riqueza Acionária'}
+                ${evaComparison.eva >= 0 ? '🌟 Riqueza Genuína Criada' : '⚠️ Destruição de Capital'}
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- Tabela de Evolução do EVA nos 5 Anos -->
-        <div class="section-card">
-          <h4 class="card-subtitle">📅 Trajetória do EVA Projetado (Anos 1 a 5)</h4>
-          <div class="table-responsive">
-            <table class="financial-table">
-              <thead>
-                <tr>
-                  <th>Métrica</th>
-                  <th>Ano 1</th>
-                  <th>Ano 2</th>
-                  <th>Ano 3</th>
-                  <th>Ano 4</th>
-                  <th>Ano 5</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Capital Investido (CI)</td>
-                  ${evaProgression.evaHistory.map((h) => `<td>R$ ${h.investedCapital.toFixed(1)}M</td>`).join('')}
-                </tr>
-                <tr>
-                  <td>NOPAT</td>
-                  ${evaProgression.evaHistory.map((h) => `<td>R$ ${h.nopat.toFixed(1)}M</td>`).join('')}
-                </tr>
-                <tr>
-                  <td>ROIC (%)</td>
-                  ${evaProgression.evaHistory.map((h) => `<td>${(h.roic * 100).toFixed(1)}%</td>`).join('')}
-                </tr>
-                <tr>
-                  <td>Capital Charge (CI × WACC)</td>
-                  ${evaProgression.evaHistory.map((h) => `<td>R$ ${h.capitalCharge.toFixed(1)}M</td>`).join('')}
-                </tr>
-                <tr class="fcf-row">
-                  <td><strong>EVA Anual</strong></td>
-                  ${evaProgression.evaHistory
-                    .map((h) => `<td class="${h.eva >= 0 ? 'color-green' : 'color-red'}"><strong>R$ ${h.eva.toFixed(1)}M</strong></td>`)
-                    .join('')}
-                </tr>
-                <tr class="pv-row">
-                  <td>EVA Acumulado</td>
-                  ${evaProgression.evaHistory
-                    .map((h) => `<td>R$ ${h.cumulativeEVA.toFixed(1)}M</td>`)
-                    .join('')}
-                </tr>
-              </tbody>
-            </table>
           </div>
         </div>
 
         <!-- Botão para Laudo de Avaliação -->
         <div class="action-footer">
           <button id="goto-step6-btn" class="btn btn-primary btn-large glow-gold">
-            Emitir Laudo de Avaliação Final (Formalização M&A) ➔
+            Emitir Laudo de Avaliação Final ➔
           </button>
         </div>
       </section>
@@ -988,49 +940,48 @@ export class UIController {
   }
 
   // ==========================================
-  // ETAPA 6: LAUDO DE AVALIAÇÃO FINAL
+  // ETAPA 6: LAUDO DE AVALIAÇÃO FINAL (MOBILE)
   // ==========================================
   renderStep6ValuationReport(container, comp, computed) {
     const { valuation, impliedMultiples, discrepancy, evaComparison, wacc } = computed;
     const cfoEval = this.state.evaluateCFOPerformance();
     const today = new Date().toLocaleDateString('pt-BR');
 
-    // Cálculo da proposta de M&A do comprador
+    // Oferta recomendada de M&A
     const minOffer = valuation.equityValue * 0.95;
     const maxOffer = valuation.equityValue * 1.10;
     const recommendedOffer = (minOffer + maxOffer) / 2;
 
     container.innerHTML = `
       <section class="step-view fade-in">
-        <!-- Barra de Ações Rápidas (Impressão / PDF) -->
+        <!-- Ações Rápidas -->
         <div class="report-actions-bar no-print">
           <button id="print-report-btn" class="btn btn-secondary">
-            🖨️ Imprimir / Salvar Laudo (PDF)
+            🖨️ Salvar PDF
           </button>
           <button id="new-valuation-btn" class="btn btn-primary">
-            🔄 Iniciar Novo Valuation
+            🔄 Novo Valuation
           </button>
         </div>
 
         <!-- DOCUMENTO FORMAL DO LAUDO DE AVALIAÇÃO -->
         <div class="valuation-formal-document" id="printable-report">
-          <!-- Cabeçalho do Laudo -->
+          <!-- Cabeçalho -->
           <div class="doc-header">
             <div class="doc-seal">LAUDO TÉCNICO OFICIAL</div>
             <div class="doc-brand">
-              <h2>ANIMVALUE CONSULTING CORP.</h2>
-              <span>Comitê de Avaliação Econômica e Fusões & Aquisições (M&A)</span>
+              <h2>ANIMVALUE CONSULTING</h2>
+              <span>Comitê de Avaliação Econômica e M&A</span>
             </div>
             <div class="doc-meta">
-              <span><strong>Data de Emissão:</strong> ${today}</span>
-              <span><strong>Empresa Avaliada:</strong> ${comp.name}</span>
-              <span><strong>CFO Responsável:</strong> Aluno / Usuário</span>
+              <span><strong>Data:</strong> ${today}</span>
+              <span><strong>Empresa:</strong> ${comp.name}</span>
             </div>
           </div>
 
           <hr class="doc-divider"/>
 
-          <!-- Desempenho do CFO -->
+          <!-- Score do CFO -->
           <div class="doc-cfo-score-box">
             <div class="score-circle">
               <span class="score-number">${cfoEval.score}</span>
@@ -1042,78 +993,36 @@ export class UIController {
             </div>
           </div>
 
-          <!-- Resumo da Transação de M&A -->
+          <!-- Proposta de M&A -->
           <div class="doc-section">
-            <h4 class="doc-section-title">1. PARECER DE TRANSAÇÃO (M&A / RODADA DE INVESTIMENTO)</h4>
+            <h4 class="doc-section-title">1. PROPOSTA DE TRANSAÇÃO (M&A)</h4>
             <div class="ma-offer-banner">
-              <div class="offer-col">
-                <span class="off-label">Faixa Sugerida de Equity Value:</span>
-                <span class="off-val">R$ ${minOffer.toFixed(1)}M – R$ ${maxOffer.toFixed(1)}M</span>
-              </div>
               <div class="offer-col highlight-deal">
                 <span class="off-label">Oferta Central Recomendada:</span>
                 <span class="off-val-big">R$ ${recommendedOffer.toFixed(1)}M</span>
               </div>
               <div class="offer-col">
-                <span class="off-label">Enterprise Value da Firma:</span>
+                <span class="off-label">Faixa Negociada:</span>
+                <span class="off-val">R$ ${minOffer.toFixed(0)}M – R$ ${maxOffer.toFixed(0)}M</span>
+              </div>
+              <div class="offer-col">
+                <span class="off-label">Enterprise Value:</span>
                 <span class="off-val">R$ ${valuation.enterpriseValue.toFixed(1)}M</span>
               </div>
             </div>
           </div>
 
-          <!-- Tabela Resumo dos Métodos de Avaliação -->
+          <!-- Pareceres Individuais -->
           <div class="doc-section">
-            <h4 class="doc-section-title">2. SÍNTESE METODOLÓGICA CONSOLIDADA</h4>
-            <table class="doc-table">
-              <thead>
-                <tr>
-                  <th>Metodologia</th>
-                  <th>Especialista</th>
-                  <th>Enterprise Value (EV)</th>
-                  <th>Equity Value</th>
-                  <th>Diagnóstico Técnico</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Fluxo de Caixa Descontado (FCD)</strong></td>
-                  <td>Doutor Fluxo</td>
-                  <td>R$ ${valuation.enterpriseValue.toFixed(1)}M</td>
-                  <td>R$ ${valuation.equityValue.toFixed(1)}M</td>
-                  <td>WACC em ${(wacc * 100).toFixed(2)}%, Gordon g em ${(this.state.assumptions.terminalGrowth * 100).toFixed(1)}%</td>
-                </tr>
-                <tr>
-                  <td><strong>Múltiplos de Mercado (EV/EBITDA)</strong></td>
-                  <td>Madame Múltiplo</td>
-                  <td>R$ ${(computed.relativeValuation.byEbitda.ev).toFixed(1)}M</td>
-                  <td>R$ ${(computed.relativeValuation.byEbitda.equity).toFixed(1)}M</td>
-                  <td>Mediana do setor em ${computed.sectorAverages.medianEvEbitda}x (Gap: ${discrepancy.gapPercentage.toFixed(1)}%)</td>
-                </tr>
-                <tr>
-                  <td><strong>Valor Econômico Adicionado (EVA)</strong></td>
-                  <td>Capitão EVA</td>
-                  <td>-</td>
-                  <td>Spread: ${(evaComparison.spread * 100).toFixed(1)}%</td>
-                  <td>EVA Ano 1: R$ ${evaComparison.eva.toFixed(2)}M (${evaComparison.eva >= 0 ? 'Criação de Valor' : 'Destruição de Capital'})</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Pareceres Assinados dos Especialistas -->
-          <div class="doc-section">
-            <h4 class="doc-section-title">3. PARECER INDIVIDUAL DOS ESPECIALISTAS</h4>
+            <h4 class="doc-section-title">2. PARECER DOS CONSULTORES</h4>
             <div class="doc-signatures-grid">
-              <!-- Doutor Fluxo -->
+              <!-- Dr. Fluxo -->
               <div class="signature-box">
                 <div class="sig-char">
                   <div class="char-avatar-micro">${characters.doctor.avatarSvg}</div>
                   <strong>${characters.doctor.name}</strong>
                 </div>
-                <p>
-                  "A consistência do fluxo de caixa livre descontado garante que a companhia possui base intrínseca sólida. 
-                  O peso do valor terminal foi mantido em ${valuation.terminalValuePercentage.toFixed(0)}% do EV."
-                </p>
+                <p>"Fluxo descontado sólido com WACC de ${(wacc * 100).toFixed(1)}%. O valor terminal responde por ${valuation.terminalValuePercentage.toFixed(0)}% do EV."</p>
                 <div class="sig-line">Assinado Digitalmente</div>
               </div>
 
@@ -1123,10 +1032,7 @@ export class UIController {
                   <div class="char-avatar-micro">${characters.madame.avatarSvg}</div>
                   <strong>${characters.madame.name}</strong>
                 </div>
-                <p>
-                  "Múltiplo implícito de EV/EBITDA fixado em ${impliedMultiples.impliedEvEbitda.toFixed(1)}x. 
-                  ${discrepancy.feedback.substring(0, 110)}..."
-                </p>
+                <p>"Múltiplo EV/EBITDA de ${impliedMultiples.impliedEvEbitda.toFixed(1)}x. Discrepância vs setor: ${discrepancy.gapPercentage.toFixed(1)}%."</p>
                 <div class="sig-line">Assinado Digitalmente</div>
               </div>
 
@@ -1136,23 +1042,9 @@ export class UIController {
                   <div class="char-avatar-micro">${characters.captain.avatarSvg}</div>
                   <strong>${characters.captain.name}</strong>
                 </div>
-                <p>
-                  "Com ROIC de ${(evaComparison.roic * 100).toFixed(1)}% e WACC de ${(wacc * 100).toFixed(1)}%, 
-                  a alocação de capital da empresa obteve nota ${evaComparison.eva >= 0 ? 'aprovada' : 'com ressalvas'} perante os acionistas."
-                </p>
+                <p>"ROIC de ${(evaComparison.roic * 100).toFixed(1)}% e EVA de R$ ${evaComparison.eva.toFixed(2)}M. Criação de valor aprovada."</p>
                 <div class="sig-line">Assinado Digitalmente</div>
               </div>
-            </div>
-          </div>
-
-          <!-- Rodapé Formal com Carimbo -->
-          <div class="doc-footer">
-            <div class="official-stamp">
-              <span class="stamp-circle">ANIMVALUE<br/>CERTIFIED<br/>M&A 2026</span>
-            </div>
-            <div class="footer-legal">
-              <p>Este laudo técnico foi gerado pelo simulador AnimValue: O Preço do Sucesso.</p>
-              <p>Recomendado para apresentações a comitês de investimentos, bancas acadêmicas e bancos mandatários.</p>
             </div>
           </div>
         </div>

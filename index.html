@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>AnimValue: O Preço do Sucesso | Web App de Valuation Gamificado</title>
-  <meta name="description" content="Aplicativo Web Gamificado de Valuation e Finanças Corporativas (PWA Mobile-First). Simule FCD, Múltiplos, Choque de Inflação e EVA no papel de CFO!">
-  <meta name="theme-color" content="#0b0f19">
+  <title>AnimValue: O Preço do Sucesso | CFO Valuation Mobile</title>
+  <meta name="description" content="Aplicativo Web Mobile Gamificado de Valuation e Finanças Corporativas (PWA). Simule FCD, Múltiplos, Choque de Inflação e EVA no papel de CFO!">
+  <meta name="theme-color" content="#090d16">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AnimValue">
@@ -15,29 +15,29 @@
   <link rel="icon" type="image/svg+xml" href="./assets/icons/icon-192.svg">
   <link rel="apple-touch-icon" href="./assets/icons/icon-192.svg">
 
-  <!-- Estilos da Aplicação -->
+  <!-- Estilos Mobile-First da Aplicação -->
   <link rel="stylesheet" href="./css/main.css">
   <link rel="stylesheet" href="./css/components.css">
   <link rel="stylesheet" href="./css/animations.css">
 </head>
 <body>
 
-  <!-- Container Mobile-First do Web App -->
+  <!-- Container Mobile-First do Web App (Smartphone Shell) -->
   <main id="app-container">
     
     <!-- Banner Opcional de Instalação PWA -->
     <div id="pwa-install-banner" class="pwa-banner hidden no-print">
-      <span class="pwa-banner-text">📲 Instale o <strong>AnimValue</strong> na sua tela de início para jogar offline!</span>
+      <span class="pwa-banner-text">📲 Instale o <strong>AnimValue</strong> no seu celular para jogar offline!</span>
       <button id="pwa-install-btn" class="btn-pwa">Instalar App</button>
     </div>
 
-    <!-- Header Fixo Superior -->
+    <!-- Header Mobile Superior Fixo -->
     <header class="app-header">
       <div class="brand" id="brand-home-btn" title="AnimValue: O Preço do Sucesso - Início">
         <span class="brand-icon">📈</span>
         <div class="brand-text">
           <h1>AnimValue</h1>
-          <span>O Preço do Sucesso • CFO M&A</span>
+          <span>CFO M&A • Mobile Edition</span>
         </div>
       </div>
       <div class="header-actions no-print">
@@ -45,7 +45,23 @@
       </div>
     </header>
 
-    <!-- Barra de Navegação da Jornada do CFO -->
+    <!-- Faixa Superior de Métricas Rápidas em Tempo Real -->
+    <section class="mobile-top-strip no-print" id="mobile-top-strip">
+      <div class="m-strip-pill blue">
+        <span class="strip-lbl">EV (Firma)</span>
+        <span class="strip-val" id="strip-ev">R$ 0M</span>
+      </div>
+      <div class="m-strip-pill green">
+        <span class="strip-lbl">Equity (Sócios)</span>
+        <span class="strip-val" id="strip-equity">R$ 0M</span>
+      </div>
+      <div class="m-strip-pill">
+        <span class="strip-lbl">WACC</span>
+        <span class="strip-val" id="strip-wacc">0.0%</span>
+      </div>
+    </section>
+
+    <!-- Barra de Progresso Mobile da Jornada -->
     <nav class="stepper-nav no-print" id="journey-stepper" aria-label="Progresso da Jornada">
       <!-- Injetado dinamicamente via ui.js -->
     </nav>
@@ -54,6 +70,34 @@
     <div id="main-flow-content">
       <!-- Injetado dinamicamente via ui.js com base na etapa ativa -->
     </div>
+
+    <!-- Barra de Navegação Inferior Fixa (Estilo Celular / Thumb Navigation) -->
+    <nav class="bottom-nav no-print" id="bottom-nav" aria-label="Navegação do Aplicativo">
+      <button class="nav-tab-btn active" data-tab-step="1" id="tab-flow">
+        <span class="tab-icon">🧭</span>
+        <span class="tab-text">Jornada</span>
+      </button>
+      <button class="nav-tab-btn" data-tab-step="2" id="tab-dcf">
+        <span class="tab-icon">🎛️</span>
+        <span class="tab-text">FCD</span>
+      </button>
+      <button class="nav-tab-btn" data-tab-step="3" id="tab-multiples">
+        <span class="tab-icon">📊</span>
+        <span class="tab-text">Múltiplos</span>
+      </button>
+      <button class="nav-tab-btn" data-tab-step="4" id="tab-macro">
+        <span class="tab-icon">🔥</span>
+        <span class="tab-text">Inflação</span>
+      </button>
+      <button class="nav-tab-btn" data-tab-step="5" id="tab-eva">
+        <span class="tab-icon">🛡️</span>
+        <span class="tab-text">EVA</span>
+      </button>
+      <button class="nav-tab-btn" data-tab-step="6" id="tab-report">
+        <span class="tab-icon">📋</span>
+        <span class="tab-text">Laudo</span>
+      </button>
+    </nav>
 
   </main>
 
